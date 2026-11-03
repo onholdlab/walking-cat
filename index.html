@@ -267,7 +267,7 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  const t=(G.uniforms.t.value+=dt);
  const d=tmp.copy(target).sub(pos);d.y=0;const dist=d.length();
  let want=0;if(dist>.3&&pause<=0){want=Math.min(1,dist/1.2)*(running?3.4:1.35)}
- else if(!air){if(pause<=0){restLong=Math.random()<.35;rollDone=false;rollP=-1;rollHit=false;sideS=Math.random()<.5?1:-1;pause=restLong?10+Math.random()*3:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
+ else if(!air){if(pause<=0){restLong=Math.random()<.2;rollDone=Math.random()<.5;rollP=-1;rollHit=false;sideS=Math.random()<.5?1:-1;pause=restLong?10+Math.random()*3:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
  if(running&&dist<1.5&&pause<=0){target.set(pos.x+Math.sin(yaw)*3,0,pos.z+Math.cos(yaw)*3)}
  if(want>0){const ty=Math.atan2(d.x,d.z);let dy=mod(ty-yaw+Math.PI,Math.PI*2)-Math.PI;
   yawV=damp(yawV,dy*6,10,dt);want*=Math.max(.25,1-Math.abs(dy)/2.2)}else yawV=damp(yawV,0,8,dt);
