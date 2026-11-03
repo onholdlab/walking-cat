@@ -12,7 +12,7 @@ canvas{display:block;touch-action:none}
 .hud{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:none}
 .chip{pointer-events:auto;background:var(--chip);backdrop-filter:blur(10px);border-radius:999px;padding:9px 16px;font-size:14px;box-shadow:0 4px 18px rgba(180,140,170,.18)}
 .chip b{font-variant-numeric:tabular-nums;color:#d47aa0}
-button.chip{border:0;color:var(--ink);font:inherit;cursor:pointer}
+button.chip{border:0;color:var(--ink);font-family:inherit;cursor:pointer}
 .pad{position:fixed;bottom:calc(26px + env(safe-area-inset-bottom,0px));width:92px;height:86px;border:0;padding:0;cursor:pointer;touch-action:none;
  border-radius:52% 48% 46% 54%/58% 56% 44% 42%;background:radial-gradient(circle at 35% 28%,#fff 0 18%,var(--c1) 60%,var(--c2));
  box-shadow:0 10px 0 var(--c3),0 16px 26px rgba(190,120,160,.28),inset 0 -6px 12px rgba(255,255,255,.4);
@@ -29,9 +29,9 @@ button.chip{border:0;color:var(--ink);font:inherit;cursor:pointer}
 .grp{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;min-width:0}
 .chip{white-space:nowrap;flex:none}
 .chip b{display:inline-block;text-align:right;font-variant-numeric:tabular-nums}
-#n{min-width:3ch}#tot{min-width:4ch}
+#n,#tot{width:6ch}
 #snd{width:40px;height:38px;padding:0;display:grid;place-items:center;font-size:17px}
-@media (max-width:420px){.chip{padding:8px 11px;font-size:13px}}
+@media (max-width:420px){.chip{padding:8px 6px;font-size:12px}}
 .gold{background:linear-gradient(135deg,#fff6cf,#ffd978);color:#8a5a00}.gold b{color:#b57300}
 #stepBtn{cursor:pointer}#stepBtn:focus-visible,.sbtn:focus-visible,#sclose:focus-visible{outline:3px solid #f3a6c4}
 .sheet{position:fixed;inset:0;z-index:9;display:grid;place-items:center;background:rgba(107,90,115,.38);backdrop-filter:blur(4px);padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -147,7 +147,13 @@ try{const r=JSON.parse(localStorage.getItem('jellycat.steps.v1')||'null');if(r&&
 const nEl=document.getElementById('n'),tEl=document.getElementById('tot');
 const fmt=v=>v.toLocaleString('en-US');
 function resetDay(){if(st.day!==dayKey()){st.day=dayKey();st.today=0;showSteps()}}
-function showSteps(){nEl.textContent=fmt(st.today);tEl.textContent=fmt(st.total)}
+const hudFmt=new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:0});
+function showSteps(){
+ for(const [el,value] of [[nEl,st.today],[tEl,st.total]]){
+  el.textContent=value<10000?fmt(value):hudFmt.format(value);
+  el.title=fmt(value);el.setAttribute('aria-label',fmt(value));
+ }
+}
 function saveSteps(){dirty=0;try{localStorage.setItem('jellycat.steps.v1',JSON.stringify(st))}catch(e){}}
 // GoatCounter 事件（只記次數，不記個人步數）
 function gcEvent(name){try{window.goatcounter&&goatcounter.count&&goatcounter.count({path:'walking-cat/'+name,title:name,event:true})}catch(e){}}
