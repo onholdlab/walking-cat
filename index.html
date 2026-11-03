@@ -249,7 +249,7 @@ const ray=new THREE.Raycaster(),pl=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 R.domElement.addEventListener('pointerdown',e=>{if(!canPlay())return;ray.setFromCamera({x:e.clientX/innerWidth*2-1,y:-e.clientY/innerHeight*2+1},C);ray.ray.intersectPlane(pl,target);pause=0;restLong=false});
 
 // ===== motion =====
-const pos=cat.position,vel=new THREE.Vector3();let idleT=0,gk=0,stk=0,lkw=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
+const pos=cat.position,vel=new THREE.Vector3();let pitchB=0,idleT=0,gk=0,stk=0,lkw=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
 const camP=new THREE.Vector3(0,9,7),camL=new THREE.Vector3(),tmp=new THREE.Vector3(),clk=new THREE.Clock();
 const damp=(a,b,k,dt)=>a+(b-a)*(1-Math.exp(-k*dt));
 function loop(){const dt=Math.min(clk.getDelta(),.05);
@@ -279,7 +279,7 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
   else{L.g.position.set(L.x,lift,L.z+Math.cos(a)*stride);L.g.rotation.x=-Math.cos(a)*.35*s01}
   const down=lift<.012;if(down&&!L.down&&spd>.12&&!air){L.paw.getWorldPosition(tmp);splash(tmp.x,tmp.z,L.x>0?.4:-.4,1+runK*.3)}L.down=down||air});
  const bob=Math.abs(Math.sin(phase))*(.03+runK*.06)*s01;
- bodyG.position.y=bob;bodyG.rotation.x=damp(bodyG.rotation.x,air?-vy*.05:runK*.12+Math.sin(phase*2)*.03*s01,10,dt);
+ bodyG.position.y=bob;pitchB=damp(pitchB,air?-vy*.05:runK*.12+Math.sin(phase*2)*.03*s01,10,dt);bodyG.rotation.x=pitchB;
  lean=damp(lean,-yawV*spd*.06,8,dt);bodyG.rotation.z=lean;cat.rotation.y=yaw;
  idleT=(spd<.05&&!air)?idleT+dt:0;const SS=THREE.MathUtils.smoothstep,Rl=(restLong&&!air)?1:0;
  // 休息流程：伸懶腰 → 側躺 → 偶爾舔毛 → 起身
