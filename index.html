@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta property="og:title" content="果凍貓散步"><meta property="og:description" content="一隻踩果凍的貓。牠走到哪，地板就噗嘰陷下去。"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta property="og:title" content="果凍貓散步"><meta property="og:description" content="一隻踩果凍的貓。牠走到哪，地板就噗嘰陷下去。"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style><script data-goatcounter="https://onholdlab.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
 <title>果凍貓散步</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -134,7 +134,10 @@ const nEl=document.getElementById('n'),tEl=document.getElementById('tot');
 const fmt=v=>v.toLocaleString('en-US');
 function showSteps(){nEl.textContent=fmt(st.today);tEl.textContent=fmt(st.total)}
 function saveSteps(){dirty=0;try{localStorage.setItem('jellycat.steps.v1',JSON.stringify(st))}catch(e){}}
-function addStep(){if(st.day!==dayKey()){st.day=dayKey();st.today=0}st.today++;st.total++;showSteps();if(++dirty>=8)saveSteps()}
+// GoatCounter 事件（只記次數，不記個人步數）
+function gcEvent(name){try{window.goatcounter&&goatcounter.count&&goatcounter.count({path:'walking-cat/'+name,title:name,event:true})}catch(e){}}
+let sessionSteps=0;const MILES=[100,500,1000,5000];
+function addStep(){sessionSteps++;if(MILES.includes(sessionSteps))gcEvent('steps-'+sessionSteps);if(st.day!==dayKey()){st.day=dayKey();st.today=0}st.today++;st.total++;showSteps();if(++dirty>=8)saveSteps()}
 showSteps();addEventListener('pagehide',saveSteps);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSteps()});
 function squish(pan,big=0){if(!AC||!on)return;if(slimeBuf){slimeStep(pan,big);return}const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),p=AC.createStereoPanner();
 const f=(big?170:250)+Math.random()*110;o.frequency.setValueAtTime(f*1.7,t);o.frequency.exponentialRampToValueAtTime(f*.5,t+.13+big*.1);
@@ -189,7 +192,9 @@ async function openShare(){saveSteps();smsg.textContent='';sheet.hidden=false;
  shareBlob=await buildShare();if(shareUrl)URL.revokeObjectURL(shareUrl);shareUrl=shareBlob?URL.createObjectURL(shareBlob):'';document.getElementById('simg').src=shareUrl;
  const tx=encodeURIComponent(shareText());document.getElementById('shX').href='https://x.com/intent/post?text='+tx;document.getElementById('shT').href='https://www.threads.net/intent/post?text='+tx;
  document.getElementById('sclose').focus()}
-document.getElementById('stepBtn').onclick=openShare;
+document.getElementById('stepBtn').onclick=()=>{gcEvent('share-open');openShare()};
+document.getElementById('shX').addEventListener('click',()=>gcEvent('share-x'));
+document.getElementById('shT').addEventListener('click',()=>gcEvent('share-threads'));
 document.getElementById('sclose').onclick=()=>{sheet.hidden=true};
 sheet.addEventListener('pointerdown',e=>{if(e.target===sheet)sheet.hidden=true});
 addEventListener('keydown',e=>{if(e.key=='Escape')sheet.hidden=true});
