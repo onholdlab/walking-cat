@@ -123,6 +123,13 @@ const legs=[];[[-.17,.25],[.17,.25],[-.17,-.28],[.17,-.28]].forEach(([x,z],i)=>{
  legs.push({g,x,z,paw,front:i<2,down:true})});
 const tail=[];let tp=bodyG;for(let i=0;i<7;i++){const s=new THREE.Group();s.position.set(0,i?.11:.55,i?0:-.42);tp.add(s);
  part(sph(.075-i*.004),i>4?patch:fur,s,{line:.025});tail.push(s);tp=s}
+// ---- 前後兩節身體：翻身時前半身先轉、後半身跟上，做出脊椎扭轉的關節感 ----
+const frontG=new THREE.Group(),rearG=new THREE.Group(),frontIn=new THREE.Group(),rearIn=new THREE.Group();
+frontG.position.y=rearG.position.y=.5;frontIn.position.y=rearIn.position.y=-.5;frontG.add(frontIn);rearG.add(rearIn);bodyG.add(frontG,rearG);
+rearIn.add(torso);torso.scale.y=.72;torso.position.z=-.13;
+part(new THREE.SphereGeometry(.31,28,20),fur,frontIn,{p:[0,.5,.17],s:[1,.98,1.15]});
+const bellyM=T(0xffeef2);part(sph(.2),bellyM,rearIn,{p:[0,.24,-.12],s:[1,.35,1.9],line:0});part(sph(.17),bellyM,frontIn,{p:[0,.26,.18],s:[1,.35,1.2],line:0});
+frontIn.add(head);legs.forEach(L=>(L.front?frontIn:rearIn).add(L.g));rearIn.add(tail[0]);
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(.55,32),new THREE.MeshBasicMaterial({color:0xa97c9c,transparent:true,opacity:.18,depthWrite:false}));
 shadow.rotation.x=-Math.PI/2;shadow.position.y=.01;S.add(shadow);
 
@@ -245,7 +252,7 @@ const ray=new THREE.Raycaster(),pl=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 R.domElement.addEventListener('pointerdown',e=>{if(!canPlay())return;ray.setFromCamera({x:e.clientX/innerWidth*2-1,y:-e.clientY/innerHeight*2+1},C);ray.ray.intersectPlane(pl,target);pause=0;restLong=false;rollP=-1});
 
 // ===== motion =====
-const pos=cat.position,vel=new THREE.Vector3();let rollP=-1,rollDone=true,rollFrom=1,rollHit=false,sideS=1,pitchB=0,idleT=0,gk=0,stk=0,lkw=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
+const pos=cat.position,vel=new THREE.Vector3();let rollP=-1,rollDone=true,rollHit=false,sideS=1,pitchB=0,idleT=0,gk=0,stk=0,lkw=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
 const camP=new THREE.Vector3(0,9,7),camL=new THREE.Vector3(),tmp=new THREE.Vector3(),clk=new THREE.Clock();
 const damp=(a,b,k,dt)=>a+(b-a)*(1-Math.exp(-k*dt));
 function loop(){const dt=Math.min(clk.getDelta(),.05);
@@ -253,7 +260,7 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  const t=(G.uniforms.t.value+=dt);
  const d=tmp.copy(target).sub(pos);d.y=0;const dist=d.length();
  let want=0;if(dist>.3&&pause<=0){want=Math.min(1,dist/1.2)*(running?3.4:1.35)}
- else if(!air){if(pause<=0){restLong=Math.random()<.35;rollDone=false;rollP=-1;rollHit=false;sideS=Math.random()<.5?1:-1;pause=restLong?8+Math.random()*4:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
+ else if(!air){if(pause<=0){restLong=Math.random()<.35;rollDone=false;rollP=-1;rollHit=false;sideS=Math.random()<.5?1:-1;pause=restLong?10+Math.random()*3:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
  if(running&&dist<1.5&&pause<=0){target.set(pos.x+Math.sin(yaw)*3,0,pos.z+Math.cos(yaw)*3)}
  if(want>0){const ty=Math.atan2(d.x,d.z);let dy=mod(ty-yaw+Math.PI,Math.PI*2)-Math.PI;
   yawV=damp(yawV,dy*6,10,dt);want*=Math.max(.25,1-Math.abs(dy)/2.2)}else yawV=damp(yawV,0,8,dt);
@@ -289,24 +296,24 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  head.rotation.z=(Math.sin(t*.8)*.05-lean*.6)*(1-gk)-gk*.25;
  bodyG.rotation.x+=stk*.28;head.rotation.x-=stk*.35;root.scale.z*=1+stk*.12;
  legs.forEach(L=>{if(L.front){L.g.position.z+=stk*.2;L.g.rotation.x-=stk*1.0}else L.g.rotation.x+=stk*.3});
- const thS=lean*(1-gk)+gk*1.0*sideS;bodyG.rotation.z=thS;bodyG.position.y+=gk*.12;bodyG.position.x=0;head.position.set(0,.95,.34);
- // 打滾：像真貓一樣慢慢翻到背朝地、扭來扭去蹭頭、再翻到另一側
- if(rollP<0&&!rollDone&&gk>.9&&idleT>3.4&&pause>4){rollP=0;rollDone=true;rollFrom=thS}
- if(rollP>=0){rollP+=dt;const T=rollP,io=x=>x<0?0:x>1?1:x*x*x*(x*(6*x-15)+10),dir=Math.sign(rollFrom)||1;
-  const back=Math.PI*dir,end=back+(Math.PI-Math.abs(rollFrom))*dir;let th,wig=0;
-  if(T<.9)th=rollFrom+(back-rollFrom)*io(T/.9);
-  else if(T<3.0){const u=T-.9;wig=Math.sin(u*6.6)*Math.exp(-u*.55)*Math.min(1,u*3);th=back+wig*.42}
-  else th=back+(end-back)*io((T-3.0)/.85);
-  const bk=Math.max(0,-Math.cos(th));
-  bodyG.rotation.z=th;bodyG.position.x=.5*Math.sin(th)-.5*Math.sin(thS);
-  bodyG.position.y+=.5*Math.cos(thS)-.5*Math.cos(th)+.28*bk;
-  head.position.y=.95-.32*bk;head.rotation.x=head.rotation.x*(1-bk)-.35*bk;head.rotation.z+=-wig*.55;head.rotation.y+=wig*.35;
-  legs.forEach((L,i)=>{if(L.front)L.g.rotation.x=L.g.rotation.x*(1-bk)+bk*(-1.4+Math.sin(T*3+i)*.08);
-   else{L.g.rotation.x=L.g.rotation.x*(1-bk)+bk*(.7+Math.sin(T*5.5+i*1.7)*.25);L.g.rotation.z=bk*(L.x>0?-.35:.35)}});
-  tail.forEach((sg,i)=>{sg.rotation.z+=bk*Math.sin(T*2.4-i*.5)*.25});
-  if(!rollHit&&T>=.9){rollHit=true;splash(pos.x,pos.z,0,1.1,true)}
-  if(T>=3.85){rollP=-1;rollHit=false;sideS=-sideS;splash(pos.x,pos.z,0,1.3,true);if(slimeBuf&&AC&&on)slimeStep(0,0)}}
- else legs.forEach(L=>{L.g.rotation.z=0});const br=1+Math.sin(t*1.7)*.025*gk;root.scale.x*=br;root.scale.y*=br;
+ const SSm=x=>x<0?0:x>1?1:x*x*x*(x*(6*x-15)+10);
+ bodyG.rotation.z=lean*(1-gk);bodyG.position.x=0;bodyG.position.y-=gk*.2;head.position.set(0,.95,.34);
+ let thF=gk*1.35*sideS,thR=thF,wig=0;
+ if(rollP<0&&!rollDone&&gk>.9&&idleT>3.4&&pause>5.6){rollP=0;rollDone=true}
+ if(rollP>=0){rollP+=dt;const Tt=rollP,d=sideS,A=1.35*d,B=Math.PI*d,C=(2*Math.PI-1.35)*d;
+  const ang=u=>u<1.3?A+(B-A)*SSm(u/1.3):u<3.7?B:B+(C-B)*SSm((u-3.7)/1.3);
+  wig=(Tt>1.1&&Tt<3.9)?Math.sin((Tt-1.1)*4.2)*Math.min(1,(Tt-1.1)*2)*Math.min(1,(3.9-Tt)*2):0;
+  thF=ang(Tt)+wig*.38;thR=ang(Math.max(0,Tt-.45))-wig*.25;
+  if(!rollHit&&Tt>=1.3){rollHit=true;splash(pos.x,pos.z,0,1.1,true)}
+  if(Tt>=5.5){rollP=-1;rollHit=false;sideS=-sideS;thF=thR=gk*1.35*sideS;splash(pos.x,pos.z,0,1.3,true);if(slimeBuf&&AC&&on)slimeStep(0,0)}}
+ frontG.rotation.z=thF;rearG.rotation.z=thR;
+ const bkF=Math.max(0,-Math.cos(thF)),bkR=Math.max(0,-Math.cos(thR));
+ head.position.y=.95-.35*bkF;bodyG.position.y+=.15*Math.max(bkF,bkR);
+ if(rollP>=0){head.rotation.x=head.rotation.x*(1-bkF)-.3*bkF;head.rotation.y+=wig*.45;head.rotation.z+=-wig*.3;
+  legs.forEach((L,i)=>{const k=L.front?bkF:bkR;if(L.front)L.g.rotation.x=L.g.rotation.x*(1-k)+k*(-1.3+Math.sin(rollP*2.5+i)*.1);
+   else{L.g.rotation.x=L.g.rotation.x*(1-k)+k*(.6+Math.sin(rollP*3.2+i*1.7)*.22);L.g.rotation.z=k*(L.x>0?-.4:.4)}})}
+ else legs.forEach(L=>{L.g.rotation.z=0});
+ root.scale.z*=1+gk*.1;const br=1+Math.sin(t*1.7)*.025*gk;root.scale.x*=br;root.scale.y*=br;
  if(rollP<0)head.rotation.x=head.rotation.x*(1-gk*.7)+lkw*(.12+Math.max(0,lk2)*.08);
  if(rollP<0)legs.forEach(L=>{L.g.rotation.x=L.g.rotation.x*(1-gk)+gk*(L.front?-.5:.4)});
  mouth.scale.y=air?1.6:1;
