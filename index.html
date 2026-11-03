@@ -249,7 +249,7 @@ const ray=new THREE.Raycaster(),pl=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 R.domElement.addEventListener('pointerdown',e=>{if(!canPlay())return;ray.setFromCamera({x:e.clientX/innerWidth*2-1,y:-e.clientY/innerHeight*2+1},C);ray.ray.intersectPlane(pl,target);pause=0;restLong=false});
 
 // ===== motion =====
-const pos=cat.position,vel=new THREE.Vector3();let idleT=0,gk=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
+const pos=cat.position,vel=new THREE.Vector3();let idleT=0,gk=0,stk=0,lkw=0,lickP=0,yaw=0,yawV=0,phase=0,lean=0,y=0,vy=0,air=false,sq=1,sqV=0,crouch=0;
 const camP=new THREE.Vector3(0,9,7),camL=new THREE.Vector3(),tmp=new THREE.Vector3(),clk=new THREE.Clock();
 const damp=(a,b,k,dt)=>a+(b-a)*(1-Math.exp(-k*dt));
 function loop(){const dt=Math.min(clk.getDelta(),.05);
@@ -257,7 +257,7 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  const t=(G.uniforms.t.value+=dt);
  const d=tmp.copy(target).sub(pos);d.y=0;const dist=d.length();
  let want=0;if(dist>.3&&pause<=0){want=Math.min(1,dist/1.2)*(running?3.4:1.35)}
- else if(!air){if(pause<=0){restLong=Math.random()<.35;pause=restLong?5+Math.random()*5:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
+ else if(!air){if(pause<=0){restLong=Math.random()<.35;pause=restLong?6+Math.random()*5:.8+Math.random()*2.2}pause-=dt;if(pause<=0){const a=yaw+(Math.random()-.5)*2.4,r=2.5+Math.random()*5;target.set(pos.x+Math.sin(a)*r,0,pos.z+Math.cos(a)*r)}}
  if(running&&dist<1.5&&pause<=0){target.set(pos.x+Math.sin(yaw)*3,0,pos.z+Math.cos(yaw)*3)}
  if(want>0){const ty=Math.atan2(d.x,d.z);let dy=mod(ty-yaw+Math.PI,Math.PI*2)-Math.PI;
   yawV=damp(yawV,dy*6,10,dt);want*=Math.max(.25,1-Math.abs(dy)/2.2)}else yawV=damp(yawV,0,8,dt);
@@ -281,13 +281,21 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  const bob=Math.abs(Math.sin(phase))*(.03+runK*.06)*s01;
  bodyG.position.y=bob;bodyG.rotation.x=damp(bodyG.rotation.x,air?-vy*.05:runK*.12+Math.sin(phase*2)*.03*s01,10,dt);
  lean=damp(lean,-yawV*spd*.06,8,dt);bodyG.rotation.z=lean;cat.rotation.y=yaw;
- idleT=(spd<.05&&!air)?idleT+dt:0;gk=damp(gk,(restLong&&pause>.6&&idleT>1.2)?1:0,3,dt);
- const lk=Math.sin(lickP);lickP+=dt*6.5*gk;const lk2=Math.sin(lickP);
- if(gk>.85&&lk<0&&lk2>=0){head.getWorldPosition(tmp);splash(tmp.x+Math.sin(yaw+1.2)*.25,tmp.z+Math.cos(yaw+1.2)*.25,0,.35,true)}
- head.rotation.x=-bodyG.rotation.x*.7+Math.sin(t*1.3)*.03*(1-gk)+gk*(.55+Math.max(0,lk2)*.14);
- head.rotation.y=damp(head.rotation.y,(yawV*.12+(spd<.1?Math.sin(t*.6)*.35:0))*(1-gk)+gk*.65,5,dt);
- head.rotation.z=(Math.sin(t*.8)*.05-lean*.6)*(1-gk)+gk*(.28+lk2*.05);
- bodyG.position.y-=gk*.03;
+ idleT=(spd<.05&&!air)?idleT+dt:0;const SS=THREE.MathUtils.smoothstep,Rl=(restLong&&!air)?1:0;
+ // 休息流程：伸懶腰 → 側躺 → 偶爾舔毛 → 起身
+ stk=damp(stk,Rl*SS(idleT,.2,.7)*(1-SS(idleT,1.5,2.1)),6,dt);
+ gk=damp(gk,Rl*SS(idleT,1.8,2.7)*THREE.MathUtils.clamp((pause-.15)/.8,0,1),4,dt);
+ lkw=damp(lkw,(gk>.9&&Math.sin(idleT*.9)>.2)?1:0,5,dt);
+ const lk=Math.sin(lickP);lickP+=dt*6*lkw;const lk2=Math.sin(lickP);
+ if(lkw>.8&&lk<0&&lk2>=0){head.getWorldPosition(tmp);splash(tmp.x,tmp.z,0,.35,true)}
+ head.rotation.x=-bodyG.rotation.x*.7+Math.sin(t*1.3)*.03*(1-gk);
+ head.rotation.y=damp(head.rotation.y,(yawV*.12+(spd<.1?Math.sin(t*.6)*.35:0))*(1-gk)+lkw*.7,5,dt);
+ head.rotation.z=(Math.sin(t*.8)*.05-lean*.6)*(1-gk)-gk*.45;
+ bodyG.rotation.x+=stk*.38;head.rotation.x-=stk*.5;root.scale.z*=1+stk*.12;
+ legs.forEach(L=>{if(L.front){L.g.position.z+=stk*.2;L.g.rotation.x-=stk*1.0}else L.g.rotation.x+=stk*.3});
+ bodyG.rotation.z=lean*(1-gk)+gk*1.2;const br=1+Math.sin(t*1.7)*.025*gk;root.scale.x*=br;root.scale.y*=br;
+ head.rotation.x+=lkw*(.45+Math.max(0,lk2)*.15);
+ legs.forEach(L=>{L.g.rotation.x=L.g.rotation.x*(1-gk)+gk*(L.front?-.5:.4)});
  mouth.scale.y=air?1.6:1;
  tail.forEach((s,i)=>{s.rotation.x=damp(s.rotation.x,i?(-.18-spd*.04):(-1.1+spd*.28),6,dt);s.rotation.z=Math.sin(t*(2.2+spd)-i*.55)*(.18+.04*i)-yawV*.04*i});
  const sn=80/300;groundOff.set(Math.round(pos.x/sn)*sn,Math.round(pos.z/sn)*sn);shadow.position.set(pos.x,.01,pos.z);shadow.scale.setScalar(1/(1+y*.6));shadow.material.opacity=.18/(1+y);
