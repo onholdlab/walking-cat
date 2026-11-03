@@ -308,11 +308,11 @@ function loop(){const dt=Math.min(clk.getDelta(),.05);
  let thF=gk*1.35*sideS,thR=thF,wig=0;
  if(rollP<0&&!rollDone&&gk>.9&&idleT>3.4&&pause>5.6){rollP=0;rollDone=true}
  if(rollP>=0){rollP+=dt;const Tt=rollP,d=sideS,A=1.35*d,B=Math.PI*d,C=(2*Math.PI-1.35)*d;
-  const ang=u=>u<1.3?A+(B-A)*SSm(u/1.3):u<3.7?B:B+(C-B)*SSm((u-3.7)/1.3);
-  wig=(Tt>1.1&&Tt<3.9)?Math.sin((Tt-1.1)*4.2)*Math.min(1,(Tt-1.1)*2)*Math.min(1,(3.9-Tt)*2):0;
+  const ang=u=>u<1.3?A+(B-A)*SSm(u/1.3):u<2.5?B:B+(C-B)*SSm((u-2.5)/1.3);
+  wig=(Tt>1.3&&Tt<2.5)?(()=>{const u=(Tt-1.3)/1.2;return Math.sin(2*Math.PI*u)*Math.sin(Math.PI*u)})():0;
   thF=ang(Tt)+wig*.38;thR=ang(Math.max(0,Tt-.45))-wig*.25;
   if(!rollHit&&Tt>=1.3){rollHit=true;splash(pos.x,pos.z,0,1.1,true)}
-  if(Tt>=5.5){rollP=-1;rollHit=false;sideS=-sideS;thF=thR=gk*1.35*sideS;splash(pos.x,pos.z,0,1.3,true);if(slimeBuf&&AC&&on)slimeStep(0,0)}}
+  if(Tt>=4.3){rollP=-1;rollHit=false;sideS=-sideS;thF=thR=gk*1.35*sideS;splash(pos.x,pos.z,0,1.3,true);if(slimeBuf&&AC&&on)slimeStep(0,0)}}
  frontG.rotation.z=thF;rearG.rotation.z=thR;
  const bkF=Math.max(0,-Math.cos(thF)),bkR=Math.max(0,-Math.cos(thR));
  head.position.y=.95-.35*bkF;bodyG.position.y+=.15*Math.max(bkF,bkR);
