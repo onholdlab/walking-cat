@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta property="og:title" content="果凍貓散步"><meta property="og:image" content="https://onholdlab.github.io/walking-cat/cover.png?v=2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="果凍貓散步"><meta name="twitter:image" content="https://onholdlab.github.io/walking-cat/cover.png?v=2"><meta property="og:description" content="一隻踩果凍的貓。牠走到哪，地板就噗嘰陷下去。"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style><script data-goatcounter="https://onholdlab.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta property="og:title" content="果凍貓散步"><meta property="og:image" content="https://onholdlab.github.io/walking-cat/cover.png?v=2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="果凍貓散步"><meta name="twitter:image" content="https://onholdlab.github.io/walking-cat/cover.png?v=2"><meta property="og:description" content="一隻踩果凍的貓。牠走到哪，地板就噗嘰陷下去。"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style><script data-goatcounter="https://onholdlab.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><script src="locale.js"></script></head><body>
 <title>果凍貓散步</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -212,7 +212,7 @@ async function buildShare(steps){
  c.fillStyle='rgba(107,90,115,.7)';c.font='500 28px '+FF;c.fillText('果凍貓散步 · ONHOLDLAB',W/2,1310);
  return await new Promise(res=>cv.toBlob(res,'image/png'))}
 const pageLink=()=>/\.github\.io$/.test(location.hostname)?location.origin+location.pathname:'';
-const shareText=steps=>`今日貓貓步數：${fmt(steps.today)} 步（累積踩踩 ${fmt(steps.total)} 步）`+(pageLink()?`\n${pageLink()}`:'');
+const shareText=steps=>window.OHLLanguage==='en'?`Today: ${fmt(steps.today)} cat steps (total: ${fmt(steps.total)})`+(pageLink()?`\n${pageLink()}`:''):`今日貓貓步數：${fmt(steps.today)} 步（累積踩踩 ${fmt(steps.total)} 步）`+(pageLink()?`\n${pageLink()}`:'');
 const sheet=document.getElementById('sheet'),smsg=document.getElementById('smsg');
 let shareRequest=0,shareDay='';
 const shareActions=[document.getElementById('scopy'),document.getElementById('ssave')];
